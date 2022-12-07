@@ -62,12 +62,13 @@ type TypetalkNotifier struct {
 
 // Terraform represents terraform configurations
 type Terraform struct {
-	Default      Default `yaml:"default"`
-	Fmt          Fmt     `yaml:"fmt"`
-	Plan         Plan    `yaml:"plan"`
-	Apply        Apply   `yaml:"apply"`
-	Drift        Drift   `yaml:"drift"`
-	UseRawOutput bool    `yaml:"use_raw_output,omitempty"`
+	Default      Default  `yaml:"default"`
+	Fmt          Fmt      `yaml:"fmt"`
+	Plan         Plan     `yaml:"plan"`
+	Apply        Apply    `yaml:"apply"`
+	Drift        Drift    `yaml:"drift"`
+	Validate     Validate `yaml:"validate"`
+	UseRawOutput bool     `yaml:"use_raw_output,omitempty"`
 }
 
 // Default is a default setting for terraform commands
@@ -82,6 +83,11 @@ type Fmt struct {
 
 // Drift is a terraform drift config
 type Drift struct {
+	Template string `yaml:"template"`
+}
+
+// Validate is a terraform validate config
+type Validate struct {
 	Template string `yaml:"template"`
 }
 

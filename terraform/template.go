@@ -13,6 +13,8 @@ const (
 	DefaultFmtTitle = "## Fmt result"
 	// DefaultDriftTitle is a default title for terraform drift
 	DefaultDriftTitle = "## Drift result"
+	// DefaultValidateTitle is a default title for terraform validate
+	DefaultValidateTitle = "## Validate result"
 	// DefaultPlanTitle is a default title for terraform plan
 	DefaultPlanTitle = "## Plan result"
 	// DefaultDestroyWarningTitle is a default title of destroy warning
@@ -54,8 +56,18 @@ const (
 </code></pre></details>
 `
 
-	// DefaultDriftTemplate is a default template for terraform Drift
+	// DefaultDriftTemplate is a default template for terraform drift
 	DefaultDriftTemplate = `
+{{ .Title }}
+
+<details><summary>Details (Click me)</summary>
+
+<pre><code>{{ .Body }}
+</pre></code></details>
+`
+
+	// DefaultValidateTemplate is a default template for terraform validate
+	DefaultValidateTemplate = `
 {{ .Title }}
 
 <details><summary>Details (Click me)</summary>
@@ -149,6 +161,13 @@ type DriftTemplate struct {
 	CommonTemplate
 }
 
+// ValidateTemplate is a default template for terraform validate
+type ValidateTemplate struct {
+	Template string
+
+	CommonTemplate
+}
+
 // PlanTemplate is a default template for terraform plan
 type PlanTemplate struct {
 	Template string
@@ -196,6 +215,16 @@ func NewDriftTemplate(template string) *DriftTemplate {
 		template = DefaultDriftTemplate
 	}
 	return &DriftTemplate{
+		Template: template,
+	}
+}
+
+// NewValidateTemplate is ValidateTemplate initializer
+func NewValidateTemplate(template string) *ValidateTemplate {
+	if template == "" {
+		template = DefaultValidateTemplate
+	}
+	return &ValidateTemplate{
 		Template: template,
 	}
 }
@@ -308,6 +337,24 @@ func (t *DriftTemplate) Execute() (string, error) {
 	return resp, nil
 }
 
+// Execute binds the execution result of terraform validate into template
+func (t *ValidateTemplate) Execute() (string, error) {
+	data := map[string]interface{}{
+		"Title":   t.Title,
+		"Message": t.Message,
+		"Result":  "",
+		"Body":    t.Result,
+		"Link":    t.Link,
+	}
+
+	resp, err := generateOutput("validate", t.Template, data, t.UseRawOutput)
+	if err != nil {
+		return "", err
+	}
+
+	return resp, nil
+}
+
 // Execute binds the execution result of terraform plan into template
 func (t *PlanTemplate) Execute() (string, error) {
 	data := map[string]interface{}{
@@ -386,6 +433,14 @@ func (t *DriftTemplate) SetValue(ct CommonTemplate) {
 	t.CommonTemplate = ct
 }
 
+// SetValue sets template entities about terraform validate to CommonTemplate
+func (t *ValidateTemplate) SetValue(ct CommonTemplate) {
+	if ct.Title == "" {
+		ct.Title = DefaultValidateTitle
+	}
+	t.CommonTemplate = ct
+}
+
 // SetValue sets template entities about terraform plan to CommonTemplate
 func (t *PlanTemplate) SetValue(ct CommonTemplate) {
 	if ct.Title == "" {
@@ -422,6 +477,11 @@ func (t *FmtTemplate) GetValue() CommonTemplate {
 
 // GetValue gets template entities
 func (t *DriftTemplate) GetValue() CommonTemplate {
+	return t.CommonTemplate
+}
+
+// GetValue gets template entities
+func (t *ValidateTemplate) GetValue() CommonTemplate {
 	return t.CommonTemplate
 }
 
