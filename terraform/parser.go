@@ -73,7 +73,6 @@ func NewFmtParser() *FmtParser {
 // NewDriftParser is DriftParser initialized with its Regexp
 func NewDriftParser() *DriftParser {
 	return &DriftParser{
-		Pass: regexp.MustCompile(`(?m)^((Plan: \d|No changes.)|(Changes to Outputs:))`),
 		Fail: regexp.MustCompile(`(?m)^(│\s{1})?(Error: )`),
 	}
 }
@@ -127,7 +126,7 @@ func (p *FmtParser) Parse(body string) ParseResult {
 func (p *DriftParser) Parse(body string) ParseResult {
 	result := ParseResult{}
 	if p.Fail.MatchString(body) {
-		result.Result = body
+		result.Result = "There is existing drift it should be fixed first in order to cotinue"
 		result.ExitCode = ExitFail
 	}
 	return result
@@ -137,7 +136,7 @@ func (p *DriftParser) Parse(body string) ParseResult {
 func (p *ValidateParser) Parse(body string) ParseResult {
 	result := ParseResult{}
 	if p.Fail.MatchString(body) {
-		result.Result = body
+		result.Result = "There is a validation error in your Terraform code"
 		result.ExitCode = ExitFail
 	}
 	return result

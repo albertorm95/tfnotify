@@ -60,20 +60,34 @@ const (
 	DefaultDriftTemplate = `
 {{ .Title }}
 
+{{ .Message }}
+
+{{if .Result}}
+<pre><code>{{ .Result }}
+</code></pre>
+{{end}}
+
 <details><summary>Details (Click me)</summary>
 
 <pre><code>{{ .Body }}
-</pre></code></details>
+</code></pre></details>
 `
 
 	// DefaultValidateTemplate is a default template for terraform validate
 	DefaultValidateTemplate = `
 {{ .Title }}
 
+{{ .Message }}
+
+{{if .Result}}
+<pre><code>{{ .Result }}
+</code></pre>
+{{end}}
+
 <details><summary>Details (Click me)</summary>
 
 <pre><code>{{ .Body }}
-</pre></code></details>
+</code></pre></details>
 `
 
 	// DefaultPlanTemplate is a default template for terraform plan
@@ -324,8 +338,8 @@ func (t *DriftTemplate) Execute() (string, error) {
 	data := map[string]interface{}{
 		"Title":   t.Title,
 		"Message": t.Message,
-		"Result":  "",
-		"Body":    t.Result,
+		"Result":  t.Result,
+		"Body":    t.Body,
 		"Link":    t.Link,
 	}
 
@@ -342,8 +356,8 @@ func (t *ValidateTemplate) Execute() (string, error) {
 	data := map[string]interface{}{
 		"Title":   t.Title,
 		"Message": t.Message,
-		"Result":  "",
-		"Body":    t.Result,
+		"Result":  t.Result,
+		"Body":    t.Body,
 		"Link":    t.Link,
 	}
 
