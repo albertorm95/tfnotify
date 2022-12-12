@@ -11,6 +11,10 @@ const (
 	DefaultDefaultTitle = "## Terraform result"
 	// DefaultFmtTitle is a default title for terraform fmt
 	DefaultFmtTitle = "## Fmt result"
+	// DefaultDriftTitle is a default title for terraform drift
+	DefaultDriftTitle = "## Drift result"
+	// DefaultValidateTitle is a default title for terraform validate
+	DefaultValidateTitle = "## Validate result"
 	// DefaultPlanTitle is a default title for terraform plan
 	DefaultPlanTitle = "## Plan result"
 	// DefaultDestroyWarningTitle is a default title of destroy warning
@@ -37,6 +41,40 @@ const (
 
 	// DefaultFmtTemplate is a default template for terraform fmt
 	DefaultFmtTemplate = `
+{{ .Title }}
+
+{{ .Message }}
+
+{{if .Result}}
+<pre><code>{{ .Result }}
+</code></pre>
+{{end}}
+
+<details><summary>Details (Click me)</summary>
+
+<pre><code>{{ .Body }}
+</code></pre></details>
+`
+
+	// DefaultDriftTemplate is a default template for terraform drift
+	DefaultDriftTemplate = `
+{{ .Title }}
+
+{{ .Message }}
+
+{{if .Result}}
+<pre><code>{{ .Result }}
+</code></pre>
+{{end}}
+
+<details><summary>Details (Click me)</summary>
+
+<pre><code>{{ .Body }}
+</code></pre></details>
+`
+
+	// DefaultValidateTemplate is a default template for terraform validate
+	DefaultValidateTemplate = `
 {{ .Title }}
 
 {{ .Message }}
@@ -130,6 +168,20 @@ type FmtTemplate struct {
 	CommonTemplate
 }
 
+// DriftTemplate is a default template for terraform drift
+type DriftTemplate struct {
+	Template string
+
+	CommonTemplate
+}
+
+// ValidateTemplate is a default template for terraform validate
+type ValidateTemplate struct {
+	Template string
+
+	CommonTemplate
+}
+
 // PlanTemplate is a default template for terraform plan
 type PlanTemplate struct {
 	Template string
@@ -167,6 +219,26 @@ func NewFmtTemplate(template string) *FmtTemplate {
 		template = DefaultFmtTemplate
 	}
 	return &FmtTemplate{
+		Template: template,
+	}
+}
+
+// NewDriftTemplate is DriftTemplate initializer
+func NewDriftTemplate(template string) *DriftTemplate {
+	if template == "" {
+		template = DefaultDriftTemplate
+	}
+	return &DriftTemplate{
+		Template: template,
+	}
+}
+
+// NewValidateTemplate is ValidateTemplate initializer
+func NewValidateTemplate(template string) *ValidateTemplate {
+	if template == "" {
+		template = DefaultValidateTemplate
+	}
+	return &ValidateTemplate{
 		Template: template,
 	}
 }
@@ -261,6 +333,42 @@ func (t *FmtTemplate) Execute() (string, error) {
 	return resp, nil
 }
 
+// Execute binds the execution result of terraform drift into template
+func (t *DriftTemplate) Execute() (string, error) {
+	data := map[string]interface{}{
+		"Title":   t.Title,
+		"Message": t.Message,
+		"Result":  t.Result,
+		"Body":    t.Body,
+		"Link":    t.Link,
+	}
+
+	resp, err := generateOutput("drift", t.Template, data, t.UseRawOutput)
+	if err != nil {
+		return "", err
+	}
+
+	return resp, nil
+}
+
+// Execute binds the execution result of terraform validate into template
+func (t *ValidateTemplate) Execute() (string, error) {
+	data := map[string]interface{}{
+		"Title":   t.Title,
+		"Message": t.Message,
+		"Result":  t.Result,
+		"Body":    t.Body,
+		"Link":    t.Link,
+	}
+
+	resp, err := generateOutput("validate", t.Template, data, t.UseRawOutput)
+	if err != nil {
+		return "", err
+	}
+
+	return resp, nil
+}
+
 // Execute binds the execution result of terraform plan into template
 func (t *PlanTemplate) Execute() (string, error) {
 	data := map[string]interface{}{
@@ -331,6 +439,22 @@ func (t *FmtTemplate) SetValue(ct CommonTemplate) {
 	t.CommonTemplate = ct
 }
 
+// SetValue sets template entities about terraform drift to CommonTemplate
+func (t *DriftTemplate) SetValue(ct CommonTemplate) {
+	if ct.Title == "" {
+		ct.Title = DefaultDriftTitle
+	}
+	t.CommonTemplate = ct
+}
+
+// SetValue sets template entities about terraform validate to CommonTemplate
+func (t *ValidateTemplate) SetValue(ct CommonTemplate) {
+	if ct.Title == "" {
+		ct.Title = DefaultValidateTitle
+	}
+	t.CommonTemplate = ct
+}
+
 // SetValue sets template entities about terraform plan to CommonTemplate
 func (t *PlanTemplate) SetValue(ct CommonTemplate) {
 	if ct.Title == "" {
@@ -362,6 +486,16 @@ func (t *DefaultTemplate) GetValue() CommonTemplate {
 
 // GetValue gets template entities
 func (t *FmtTemplate) GetValue() CommonTemplate {
+	return t.CommonTemplate
+}
+
+// GetValue gets template entities
+func (t *DriftTemplate) GetValue() CommonTemplate {
+	return t.CommonTemplate
+}
+
+// GetValue gets template entities
+func (t *ValidateTemplate) GetValue() CommonTemplate {
 	return t.CommonTemplate
 }
 

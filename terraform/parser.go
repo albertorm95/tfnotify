@@ -32,6 +32,18 @@ type FmtParser struct {
 	Fail *regexp.Regexp
 }
 
+// DriftParser is a parser for terraform Drift
+type DriftParser struct {
+	Pass *regexp.Regexp
+	Fail *regexp.Regexp
+}
+
+// ValidateParser is a parser for terraform Validate
+type ValidateParser struct {
+	Pass *regexp.Regexp
+	Fail *regexp.Regexp
+}
+
 // PlanParser is a parser for terraform plan
 type PlanParser struct {
 	Pass         *regexp.Regexp
@@ -55,6 +67,20 @@ func NewDefaultParser() *DefaultParser {
 func NewFmtParser() *FmtParser {
 	return &FmtParser{
 		Fail: regexp.MustCompile(`(?m)^@@[^@]+@@`),
+	}
+}
+
+// NewDriftParser is DriftParser initialized with its Regexp
+func NewDriftParser() *DriftParser {
+	return &DriftParser{
+		Fail: regexp.MustCompile(`(?m)^(│\s{1})?(Error: )`),
+	}
+}
+
+// NewValidateParser is ValidateParser initialized with its Regexp
+func NewValidateParser() *ValidateParser {
+	return &ValidateParser{
+		Fail: regexp.MustCompile(`(?m)^(│\s{1})?(Error: )`),
 	}
 }
 
@@ -91,6 +117,26 @@ func (p *FmtParser) Parse(body string) ParseResult {
 	result := ParseResult{}
 	if p.Fail.MatchString(body) {
 		result.Result = "There is diff in your .tf file (need to be formatted)"
+		result.ExitCode = ExitFail
+	}
+	return result
+}
+
+// Parse returns ParseResult related with terraform Drift
+func (p *DriftParser) Parse(body string) ParseResult {
+	result := ParseResult{}
+	if p.Fail.MatchString(body) {
+		result.Result = "There is existing drift it should be fixed first in order to cotinue"
+		result.ExitCode = ExitFail
+	}
+	return result
+}
+
+// Parse returns ParseResult related with terraform validate
+func (p *ValidateParser) Parse(body string) ParseResult {
+	result := ParseResult{}
+	if p.Fail.MatchString(body) {
+		result.Result = "There is a validation error in your Terraform code"
 		result.ExitCode = ExitFail
 	}
 	return result
